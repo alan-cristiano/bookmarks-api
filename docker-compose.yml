@@ -10,5 +10,15 @@ services:
     networks:
       - backend
 
+  test-db:
+    image: postgres:16
+    ports:
+      - 5433:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=nest
+    networks:
+      - backend
 networks:
   backend:
