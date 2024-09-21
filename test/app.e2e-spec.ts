@@ -45,9 +45,11 @@ describe('App e2e', () => {
           .withBody({ password: dto.password })
           .expectStatus(400);
       });
+
       it('should throw if password empty', () => {
         return pactum.spec().post('/auth/signup').expectStatus(400);
       });
+
       it('should throw if no request body provided', () => {
         return pactum
           .spec()
@@ -55,6 +57,7 @@ describe('App e2e', () => {
           .withBody({ email: dto.email })
           .expectStatus(400);
       });
+
       it('should signup', () => {
         return pactum
           .spec()
@@ -62,6 +65,14 @@ describe('App e2e', () => {
           .withBody(dto)
           .expectStatus(201);
         // .inspect();
+      });
+
+      it('should throw if trying to signup with registered e-mail', () => {
+        return pactum
+          .spec()
+          .post('/auth/signup')
+          .withBody(dto)
+          .expectStatus(403);
       });
     });
 
@@ -73,16 +84,37 @@ describe('App e2e', () => {
           .withBody({ password: dto.password })
           .expectStatus(400);
       });
+
       it('should throw if password empty', () => {
         return pactum.spec().post('/auth/signin').expectStatus(400);
       });
-      it('should throw if no request body provided', () => {
+
+      it('should throw if no request body is provided', () => {
         return pactum
           .spec()
           .post('/auth/signin')
           .withBody({ email: dto.email })
           .expectStatus(400);
       });
+
+      it('should throw if password is incorrect', () => {
+        return pactum
+          .spec()
+          .post('/auth/signin')
+          .withBody({ ...dto, password: '1234567' })
+          .expectStatus(403)
+          .stores('userAt', 'access_token');
+      });
+
+      it('should throw if e-mail is incorrect', () => {
+        return pactum
+          .spec()
+          .post('/auth/signin')
+          .withBody({ ...dto, email: 'johndoe2@mail.com' })
+          .expectStatus(403)
+          .stores('userAt', 'access_token');
+      });
+
       it('should signin', () => {
         return pactum
           .spec()
@@ -96,6 +128,10 @@ describe('App e2e', () => {
 
   describe('User', () => {
     describe('Get me', () => {
+      it('sould throw if no auth token is provided', () => {
+        return pactum.spec().get('/users/me').expectStatus(401);
+      });
+
       it('sould get current user', () => {
         return pactum
           .spec()
@@ -112,6 +148,14 @@ describe('App e2e', () => {
     });
 
     describe('Edit user', () => {
+      it('sould throw if no auth token is provided', () => {
+        const dto: EditUserDto = {
+          email: 'johndoe2@mail.com',
+        };
+
+        return pactum.spec().patch('/users').withBody(dto).expectStatus(401);
+      });
+
       it('sould edit user', () => {
         const dto: EditUserDto = {
           email: 'johndoe2@mail.com',
@@ -135,6 +179,10 @@ describe('App e2e', () => {
 
   describe('Bookmarks', () => {
     describe('Get empty bookmarks', () => {
+      it('should throw if no auth token is provided', () => {
+        return pactum.spec().get('/bookmarks').expectStatus(401);
+      });
+
       it('should get empty bookmarks', () => {
         return pactum
           .spec()
@@ -144,11 +192,42 @@ describe('App e2e', () => {
           .expectBody([]);
       });
     });
+
     describe('Create bookmark', () => {
       const dto: CreateBookmarkDto = {
         title: 'Bookmark example',
         link: 'BookmarkUrl',
       };
+
+      it('should throw if title empty', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ link: dto.link })
+          .expectStatus(400);
+      });
+
+      it('should throw if link empty', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ title: dto.title })
+          .expectStatus(400);
+      });
+
+      it('should throw if no request body is provided', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .expectStatus(400);
+      });
+
+      it('should throw if no auth token is provided', () => {
+        return pactum.spec().post('/bookmarks').withBody(dto).expectStatus(401);
+      });
 
       it('should create bookmark', () => {
         return pactum
@@ -160,6 +239,7 @@ describe('App e2e', () => {
           .stores('bookmarkId', 'id');
       });
     });
+
     describe('Get bookmarks', () => {
       it('should get bookmarks', () => {
         return pactum
@@ -170,7 +250,16 @@ describe('App e2e', () => {
           .expectJsonLength(1);
       });
     });
+
     describe('Get bookmark by id', () => {
+      it('should throw if no auth token is provided', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .expectStatus(401);
+      });
+
       it('should get bookmark by id', () => {
         return pactum
           .spec()
@@ -181,10 +270,20 @@ describe('App e2e', () => {
           .expectBodyContains('$S{bookmarkId}');
       });
     });
+
     describe('Edit bookmark by id', () => {
       const dto: EditBookmarkDto = {
         description: 'Bookmark description',
       };
+
+      it('should throw if no auth token is provided', () => {
+        return pactum
+          .spec()
+          .patch('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .withBody(dto)
+          .expectStatus(401);
+      });
 
       it('should edit bookmark by id', () => {
         return pactum
@@ -197,7 +296,16 @@ describe('App e2e', () => {
           .expectBodyContains(dto.description);
       });
     });
+
     describe('Delete bookmark by id', () => {
+      it('should throw if no auth token is provided', () => {
+        return pactum
+          .spec()
+          .delete('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .expectStatus(401);
+      });
+
       it('should delete bookmark by id', () => {
         return pactum
           .spec()
