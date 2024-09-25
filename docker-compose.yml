@@ -6,7 +6,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=1234
-      - POSTGRES_DB=nest
+      - POSTGRES_DB=db
     networks:
       - backend
 
@@ -17,7 +17,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=1234
-      - POSTGRES_DB=nest
+      - POSTGRES_DB=db
     networks:
       - backend
 networks:

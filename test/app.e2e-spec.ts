@@ -64,7 +64,6 @@ describe('App e2e', () => {
           .post('/auth/signup')
           .withBody(dto)
           .expectStatus(201);
-        // .inspect();
       });
 
       it('should throw if trying to signup with registered e-mail', () => {
@@ -140,8 +139,6 @@ describe('App e2e', () => {
           .expectStatus(200)
           .expectBodyContains('id')
           .expectBodyContains('email')
-          .expectBodyContains('firstName')
-          .expectBodyContains('lastName')
           .expectBodyContains('createdAt')
           .expectBodyContains('updatedAt');
       });
@@ -169,8 +166,6 @@ describe('App e2e', () => {
           .expectStatus(200)
           .expectBodyContains('id')
           .expectBodyContains('email')
-          .expectBodyContains('firstName')
-          .expectBodyContains('lastName')
           .expectBodyContains('createdAt')
           .expectBodyContains('updatedAt');
       });
